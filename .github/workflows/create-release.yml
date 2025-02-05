@@ -1,0 +1,47 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get-latest-tag
+        run: echo "latest-tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
+      - name: Extract merged pull requests
+        id: extract-merged-pull-requests
+        uses: praha-inc/action-extract-merged-pull-requests@beta
+        with:
+          base-ref: ${{ steps.get-latest-tag.outputs.latest-tag }}
+
+      - name: Make release name
+        id: make-release-name
+        run: echo "result=RELEASE-$(TZ=Asia/Tokyo date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Make release body
+        id: make-release-body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const mergedPullRequests = JSON.parse('${{ steps.extract-merged-pull-requests.outputs.pull-requests }}');
+
+            return [
+              '## What\'s Changes',
+              '',
+              ...mergedPullRequests.map((pr) => `- #${pr.number}`),
+            ].join('\n');
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          target_commitish: ${{ github.sha }}
+          tag_name: ${{ steps.make-release-name.outputs.result }}
+          body: ${{ steps.make-release-body.outputs.result }}
