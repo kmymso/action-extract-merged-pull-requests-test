@@ -1,10 +1,25 @@
-name: Create Release
+name: Rollback Production
 
 on:
   workflow_dispatch:
 
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy
+        run: echo "Do something for deploying to production..."
+
   create-release:
+    name: Create Rollback Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -14,17 +29,18 @@ jobs:
 
       - name: Get latest tag
         id: get-latest-tag
-        run: echo "latest-tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+        run: echo "latest-tag=$(git describe --tags $(git rev-list --tags --max-count=1 --first-parent main))" >> $GITHUB_OUTPUT
 
       - name: Extract merged pull requests
         id: extract-merged-pull-requests
         uses: praha-inc/action-extract-merged-pull-requests@beta
         with:
-          base-ref: ${{ steps.get-latest-tag.outputs.latest-tag }}
+          base-ref: ${{ github.sha }}
+          head-ref: ${{ steps.get-latest-tag.outputs.latest-tag }}
 
       - name: Make release name
         id: make-release-name
-        run: echo "result=RELEASE-$(TZ=Asia/Tokyo date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_OUTPUT
+        run: echo "result=ROLLBACK-$(TZ=Asia/Tokyo date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Make release body
         id: make-release-body
@@ -34,7 +50,7 @@ jobs:
             const mergedPullRequests = JSON.parse('${{ steps.extract-merged-pull-requests.outputs.pull-requests }}');
 
             return [
-              '## What\'s Changes',
+              '## 🔥 What\'s Rollbacks',
               '',
               ...mergedPullRequests.map((pr) => `- #${pr.number} ${pr.title}`),
             ].join('\n');
