@@ -36,7 +36,7 @@ jobs:
             return [
               '## What\'s Changes',
               '',
-              ...mergedPullRequests.map((pr) => `- #${pr.number}`),
+              ...mergedPullRequests.map((pr) => `- #${pr.number} ${pr.title}`),
             ].join('\n');
 
       - name: Create release
