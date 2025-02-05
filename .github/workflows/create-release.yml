@@ -44,4 +44,4 @@ jobs:
         with:
           target_commitish: ${{ github.sha }}
           tag_name: ${{ steps.make-release-name.outputs.result }}
-          body: ${{ steps.make-release-body.outputs.result }}
+          body: ${{ fromJSON(steps.make-release-body.outputs.result) }}
