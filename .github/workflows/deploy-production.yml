@@ -49,7 +49,7 @@ jobs:
             const mergedPullRequests = JSON.parse('${{ steps.extract-merged-pull-requests.outputs.pull-requests }}');
 
             return [
-              '## What\'s Changes',
+              '## ✨ What\'s Changes',
               '',
               ...mergedPullRequests.map((pr) => `- #${pr.number} ${pr.title}`),
             ].join('\n');

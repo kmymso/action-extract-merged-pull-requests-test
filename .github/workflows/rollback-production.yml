@@ -25,11 +25,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Get latest tag
         id: get-latest-tag
-        run: echo "latest-tag=$(git describe --tags $(git rev-list --tags --max-count=1 --first-parent main))" >> $GITHUB_OUTPUT
+        run: echo "latest-tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
 
       - name: Extract merged pull requests
         id: extract-merged-pull-requests
